@@ -13,4 +13,3 @@ class FmoItem(scrapy.Item):
     country = scrapy.Field()
     industry = scrapy.Field()
     description = scrapy.Field()
-    category = scrapy.Field()

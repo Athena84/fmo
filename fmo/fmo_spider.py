@@ -2,25 +2,33 @@ from fmo.items import FmoItem
 from scrapy import Spider, Request
 import re
 
-class BudgetSpider(Spider):
+class fmoSpider(Spider):
     name = 'fmo_spider'
     allowed_urls = ['https://www.fmo.nl']
     start_urls = ['https://www.fmo.nl/worldmap']
 
 
     def parse(self, response):
+        #Scrape number of pages
         num_pages = int(response.xpath('.//*[@id="pbuic-pager-1"]/li[7]/a/text()').extract_first())
+
+        #Create all the urls
         base_url = 'https://www.fmo.nl/worldmap'
         list_page_urls = [base_url +'?page={page_num}'.format(page_num = i) for i in range(2, num_pages + 1)]
-        list_page_urls.append(base_url)
+        list_page_urls.append(base_url) #Note: first page without number also has projects so must be scraped too
+
+        #Create request for each url
         for url in list_page_urls:
             yield Request(url = url, callback = self.parse_projects_list_page)
 
 
+    #Handles each request for a page with list of projects
     def parse_projects_list_page(self, response):
 
-        #Scrape table with all projects
+        #Scrape the projects table
         blocks = response.xpath('.//li[@class="ProjectList__item"]')
+
+        #Loop through the list to scrape the data and make request to each underlying detail page
         for block in blocks:
 
             #Scrape stats of projects on list page and store as dictionary to later yield complete item once the details page has been scraped as well
@@ -49,9 +57,7 @@ class BudgetSpider(Spider):
         texts = response.xpath('.//*[@class="ProjectDetail__main"]/p/text()').extract()
         description = dict(zip(headers, texts))
 
-        #scrape category
-        #Other details listed here are sometimes in different order and hard to distinguish by path, better to scrape from list page
-        category = response.xpath('.//div[@class="ProjectDetail__asideInner"]/dl/dd[-1]/text()').extract_first()
+        #Note: Other details listed on project detail page are sometimes in different order and hard to distinguish by path, better to scrape from list page
 
         #write into an item instance
         item = FmoItem()
@@ -61,5 +67,4 @@ class BudgetSpider(Spider):
         item['country'] = response.meta['country']
         item['industry'] = response.meta['industry']
         item['description'] = description
-        item['category'] = category
         yield item

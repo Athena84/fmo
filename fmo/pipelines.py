@@ -14,7 +14,7 @@ class WriteItemPipeline(object):
         self.filename = 'fmo.csv'
 
     def open_spider(self, spider):
-        self.csvfile = open(self.filename, 'wb')
+        self.csvfile = open(self.filename, mode  ='wb')
         self.exporter = CsvItemExporter(self.csvfile)
         self.exporter.start_exporting()
 

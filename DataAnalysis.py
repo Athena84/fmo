@@ -43,11 +43,43 @@ def convert_currency(amount):
 
     return number
 
+def check_search_term(description, search_terms):
+    for term in search_terms:
+        if term in description:
+            return True
+    return False
+
 #Reading the data
 folder = Path("scrapeddata")
 file_to_open = folder / "fmo.csv"
-cols = pd.read_csv(file_to_open, sep=";", nrows=1).columns
-df = pd.read_csv(file_to_open, sep=";", usecols=cols[:6])
+cols = pd.read_csv(file_to_open, sep=",", nrows=1).columns
+df = pd.read_csv(file_to_open, sep=",", usecols=cols[:6]) #Leave out couple of empty columns at end of file
 
 #add a column with converted amounts in EUR as numbers
 df["EUR_amounts"] = [convert_currency(amount) for amount in df["amount"]]
+
+#Test investments for being other fund rather than direct
+search_terms = ["fund", "vehicle"]
+df["fund"] = [check_search_term(description, search_terms) for description in df["description"]]
+
+#Test economic inclusion
+search_terms = ["inclusive", "inclusion", "empowerment", "microfinance", "smallholder", "ineqaulity"]
+df["inclusion"] = [check_search_term(description, search_terms) for description in df["description"]]
+
+#Test climate
+search_terms = ["green", "renewable", "climate", "sustainable"]
+df["climate"] = [check_search_term(description, search_terms) for description in df["description"]]
+
+#Test gender
+search_terms = ["gender", "female", "women"]
+df["gender"] = [check_search_term(description, search_terms) for description in df["description"]]
+
+#Test human rights
+search_terms = ["equal rigths", "human rights", "justice"]
+df["human_rights"] = [check_search_term(description, search_terms) for description in df["description"]]
+
+#Test economic growth
+search_terms = ["economic growth"]
+df["economic_growth"] = [check_search_term(description, search_terms) for description in df["description"]]
+
+print(df['gender'])

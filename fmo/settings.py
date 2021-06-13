@@ -19,6 +19,19 @@ USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = False
 
+FEED_EXPORTERS = {
+    'csv': 'fmo.fmo_csv_item_exporter.fmoCsvItemExporter',
+}
+FIELDS_TO_EXPORT = [
+    'project_name',
+    'date',
+    'amount',
+    'country',
+    'industry',
+    'description'
+]
+CSV_DELIMITER = ";"
+
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
 

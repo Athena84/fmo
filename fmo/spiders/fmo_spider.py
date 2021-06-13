@@ -53,9 +53,14 @@ class fmoSpider(Spider):
     def parse_project_details_page(self, response):
 
         #scrape detail description and combine into a dictionary with headers as keys
-        headers = response.xpath('.//*[@class="ProjectDetail__main"]/h3/text()').extract()
+        #headers = response.xpath('.//*[@class="ProjectDetail__main"]/h3/text()').extract()
+        #texts = response.xpath('.//*[@class="ProjectDetail__main"]/p/text()').extract()
+        #description = dict(zip(headers, texts))
+
+        #scrape detail descriptions and combine into a single string. The questions and headers differ and key information is typically spread over various answers
         texts = response.xpath('.//*[@class="ProjectDetail__main"]/p/text()').extract()
-        description = dict(zip(headers, texts))
+        sep = ""
+        description = sep.join(texts).lower().strip()
 
         #Note: Other details listed on project detail page are sometimes in different order and hard to distinguish by path, better to scrape from list page
 

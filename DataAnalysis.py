@@ -5,6 +5,7 @@ from pathlib import Path
 #takes a string with 3 letter currency code followed by amount in millions
 #return float of number in thousands
 #converts couple of hard-coded non-EURO currencies in the set
+#Currency data from June 13 2021
 def convert_currency(amount):
 
     number = 1000 * float(re.search(r'\s(\d+\.\d+)', amount).group(1))
@@ -46,14 +47,14 @@ def convert_currency(amount):
 def check_search_term(description, search_terms):
     for term in search_terms:
         if term in description:
-            return True
-    return False
+            return 1
+    return 0
 
 #Reading the data
 folder = Path("scrapeddata")
 file_to_open = folder / "fmo.csv"
-cols = pd.read_csv(file_to_open, sep=",", nrows=1).columns
-df = pd.read_csv(file_to_open, sep=",", usecols=cols[:6]) #Leave out couple of empty columns at end of file
+cols = pd.read_csv(file_to_open, sep=";", nrows=1).columns
+df = pd.read_csv(file_to_open, sep=";", usecols=cols[:6]) #Leave out couple of empty columns at end of file
 
 #add a column with converted amounts in EUR as numbers
 df["EUR_amounts"] = [convert_currency(amount) for amount in df["amount"]]
@@ -63,11 +64,15 @@ search_terms = ["fund", "vehicle"]
 df["fund"] = [check_search_term(description, search_terms) for description in df["description"]]
 
 #Test economic inclusion
-search_terms = ["inclusive", "inclusion", "empowerment", "microfinance", "smallholder", "ineqaulity"]
+search_terms = ["inclusive", "inclusion", "affordable housing", "empowerment", "microfinance", "smallholder", "ineqaulity", "sme", "smes", "small and medium sized enterprise", "family-owned", "low-income", "job opportunities", "mid-market", "middle-market", "early stage", "unemployment", "local enterprise", "medium-sized", "lower mid-cap"]
 df["inclusion"] = [check_search_term(description, search_terms) for description in df["description"]]
 
+#Test hunger
+search_terms = ["food security", "hunger", "clean water", "drinking water"]
+df["food_security"] = [check_search_term(description, search_terms) for description in df["description"]]
+
 #Test climate
-search_terms = ["green", "renewable", "climate", "sustainable"]
+search_terms = ["green", "renewable", "climate", "sustainable", "environmental"]
 df["climate"] = [check_search_term(description, search_terms) for description in df["description"]]
 
 #Test gender
@@ -75,11 +80,33 @@ search_terms = ["gender", "female", "women"]
 df["gender"] = [check_search_term(description, search_terms) for description in df["description"]]
 
 #Test human rights
-search_terms = ["equal rigths", "human rights", "justice"]
+search_terms = ["equal rigths", "human rights", "justice", "governance", "labor standards", "hse"]
 df["human_rights"] = [check_search_term(description, search_terms) for description in df["description"]]
 
+#Test education
+search_terms = ["education"]
+df["education"] = [check_search_term(description, search_terms) for description in df["description"]]
+
 #Test economic growth
-search_terms = ["economic growth"]
+search_terms = ["economic growth", " gdp growth", "economic development", "emerging", "upcoming", "efficiency", "readily available", "ecosystem"]
 df["economic_growth"] = [check_search_term(description, search_terms) for description in df["description"]]
 
-print(df['gender'])
+#Check multi-goal investments
+df["num_goals"] = df["inclusion"] + df["food_security"] + df["climate"] + df["gender"] + df["human_rights"] + df["education"] + df["economic_growth"]
+mask_multi = (df["num_goals"] > 1)
+mask_noGoals = (df["num_goals"] == 0)
+
+#pd.options.display.min_rows = 1000
+#print(df.loc[mask_noGoals, ["description"]])
+
+print(df["num_goals"].sum())
+
+total_investment = df["EUR_amounts"].sum()
+#print(total_investment)
+
+num_inclusion = df["inclusion"].sum()
+total_inclusion = sum(df["inclusion"] * df["EUR_amounts"])
+av_inclusion = total_inclusion / num_inclusion
+#print(num_inclusion)
+#print(total_inclusion)
+#print(av_inclusion)
